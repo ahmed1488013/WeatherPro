@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherPro & PollIt</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS for responsive design and easy styling -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #E3F2FD;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        #location {
+            padding: 10px;
+            font-size: 18px;
+            width: 60%;
+            max-width: 400px;
+        }
+
+        #getWeather {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #getWeather:hover {
+            background-color: #45a049;
+        }
+
+        .weather-card, #poll-display {
+            margin-top: 20px;
+        }
+
+        #pollTitle {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3F51B5;
+        }
+
+        #vote-button {
+            background-color: #FFC107;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        #vote-button:hover {
+            background-color: #FF9800;
+        }
+
+        .poll-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .poll-item input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Buttons to switch between WeatherPro and PollIt -->
+        <div>
+            <button class="btn btn-primary" onclick="showWeather()">WeatherPro</button>
+            <button class="btn btn-secondary" onclick="showPollIt()">PollIt</button>
+        </div>
+
+        <!-- WeatherPro Section -->
+        <div id="weatherSection" style="display:block;">
+            <div class="weather-form">
+                <input type="text" id="location" class="form-control" placeholder="Enter location" />
+                <button id="getWeather" class="btn btn-success" onclick="getWeather()">Get Weather</button>
+            </div>
+
+            <div id="weather-display">
+                <div class="weather-card">
+                    <h2 id="location-name">Location Name</h2>
+                    <p id="temperature" style="color: #FF5722; font-size: 24px;">25°C</p>
+                    <p id="condition" style="color: #4CAF50;">Sunny</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PollIt Section -->
+        <div id="pollItSection" style="display:none;">
+            <div class="poll-creation-form">
+                <input type="text" id="pollTitle" class="form-control" placeholder="Poll Title" />
+                <textarea id="pollOptions" class="form-control" placeholder="Enter options, separated by commas"></textarea>
+                <button class="btn btn-primary" onclick="createPoll()">Create Poll</button>
+            </div>
+
+            <div id="poll-display">
+                <!-- Poll will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+ async function getWeather() {
+    const location = document.getElementById('location').value;
+    const apiKey = 'a66f9f766cf5ddc2612169a2f8af1d13';  // أدخل مفتاح API الخاص بـ WeatherStack هنا
+    const url = `http://api.weatherstack.com/current?access_key=${apiKey}&query=${location}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.success === false) {
+            document.getElementById('location-name').innerText = 'Location not found';
+        } else {
+            document.getElementById('location-name').innerText = data.location.name;
+            document.getElementById('temperature').innerText = `Temperature: ${data.current.temperature}°C`;
+            document.getElementById('condition').innerText = `Condition: ${data.current.weather_descriptions[0]}`;
+        }
+    } catch (error) {
+        document.getElementById('location-name').innerText = 'Error fetching data';
+    }
+}
+
+        // PollIt JavaScript
+        let votes = [0, 0, 0];
+
+        function createPoll() {
+            const title = document.getElementById('pollTitle').value;
+            const options = document.getElementById('pollOptions').value.split(',');
+            document.getElementById('poll-display').innerHTML = `<h2>${title}</h2>`;
+            options.forEach((option, index) => {
+                document.getElementById('poll-display').innerHTML += `
+                    <div class="poll-item">
+                        <input type="radio" name="pollOption" id="option-${index}" />
+                        <label for="option-${index}">${option}</label>
+                    </div>
+                `;
+            });
+            document.getElementById('poll-display').innerHTML += `
+                <button id="vote-button" class="btn btn-warning" onclick="submitVote()">Vote</button>
+            `;
+        }
+
+        function submitVote() {
+            const selectedOption = document.querySelector('input[name="pollOption"]:checked');
+            if (selectedOption) {
+                const index = selectedOption.id.split('-')[1];
+                votes[index]++;
+                alert('Your vote has been submitted!');
+                updateResults();
+            } else {
+                alert('Please select an option');
+            }
+        }
+
+        function updateResults() {
+            const results = votes.map((vote, index) => `<p>Option ${index + 1}: ${vote} votes</p>`).join('');
+            document.getElementById('poll-display').innerHTML += `<div><h3>Results:</h3>${results}</div>`;
+        }
+
+        // Show and Hide Sections
+        function showWeather() {
+            document.getElementById("weatherSection").style.display = "block";
+            document.getElementById("pollItSection").style.display = "none";
+        }
+
+        function showPollIt() {
+            document.getElementById("weatherSection").style.display = "none";
+            document.getElementById("pollItSection").style.display = "block";
+        }
+    </script>
+
+</body>
+</html>
